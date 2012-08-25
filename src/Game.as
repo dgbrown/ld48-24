@@ -2,6 +2,8 @@ package
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import org.flixel.*;
 	
 	public class Game extends FlxState 
@@ -10,8 +12,9 @@ package
 		private var _ground:FlxSprite;
 		private var _player:FlxSprite;
 		
-		private var _gfxPlayer:BitmapData;
-		private var _gfxGround:BitmapData;
+		[Embed(source="../assets/images/sea_background.png")]
+		private var _gfxBackground:Class;
+		private var _bmdBackground:BitmapData;
 		
 		override public function create():void 
 		{
@@ -19,6 +22,8 @@ package
 			
 			FlxG.mouse.hide();
 			FlxG.bgColor = FlxG.BLUE;
+			
+			initializeGraphics();
 			
 			_ground = new FlxSprite( 0, FlxG.height - 50 );
 			_ground.makeGraphic( 320, 50, 0xFF000000, true );
@@ -33,6 +38,17 @@ package
 			// on ground player drag is 15
 			// else drag is 1
 			add( _player );
+		}
+		
+		public function initializeGraphics():void
+		{
+			_bmdBackground = FlxG.addBitmap( _gfxBackground, false, true );
+		}
+		
+		override public function draw():void 
+		{
+			FlxG.camera.buffer.copyPixels( _bmdBackground, _bmdBackground.rect, new Point() );
+			super.draw();
 		}
 		
 		override public function update():void 
