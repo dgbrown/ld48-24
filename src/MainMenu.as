@@ -18,7 +18,7 @@ package
 			FlxG.bgColor = FlxG.BLUE;
 			FlxG.mouse.show();
 			
-			_txtTitle = new FlxText( 0, 20, FlxG.width, "Flixel Test!!!" );
+			_txtTitle = new FlxText( 0, 20, FlxG.width, "The Underglen" );
 			_txtTitle.setFormat( null, 24, 0xFFCA28, "center", 0x002828 );
 			_txtTitle.shadow = 0xFF914A17;
 			add( _txtTitle );

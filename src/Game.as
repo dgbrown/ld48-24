@@ -10,14 +10,12 @@ package
 	{
 		
 		private var _ground:FlxSprite;
-		private var _player:FlxSprite;
+		private var _player:Player;
+		private var _harvestHint:Hint;
 		
 		[Embed(source="../assets/images/sea_background.png")]
 		private var _gfxBackground:Class;
 		private var _bmdBackground:BitmapData;
-		[Embed(source = "../assets/images/floor.png")]
-		private var _gfxFloor:Class;
-		private var _bmdFloor:BitmapData;
 		[Embed(source="../assets/images/level.png")]
 		private var _gfxLevel:Class;
 		private var _bmdLevel:BitmapData;
@@ -37,12 +35,6 @@ package
 			
 			initializeGraphics();
 			
-			/*
-			_ground = new FlxSprite( 0, FlxG.height - _bmdFloor.height, _gfxFloor );
-			_ground.immovable = true;
-			add( _ground );
-			*/
-			
 			_terrain = new FlxTilemap();
 			_terrain.loadMap( FlxTilemap.bitmapToCSV( _bmdLevel ), _gfxTilesetSeabed, 8, 8, FlxTilemap.AUTO );
 			_terrain.allowCollisions = FlxObject.ANY;
@@ -53,6 +45,11 @@ package
 			_player = new Player( FlxG.width * 0.15, 20 );
 			add( _player );
 			
+			// ui elements
+			_harvestHint = new Hint( 0, 0, "Press E to harvest!" );
+			add( _harvestHint );
+			
+			// setup camera
 			FlxG.camera.follow( _player );
 			_terrain.follow( FlxG.camera );
 		}
@@ -80,7 +77,6 @@ package
 		public function initializeGraphics():void
 		{
 			_bmdBackground = FlxG.addBitmap( _gfxBackground, false, true );
-			_bmdFloor = FlxG.addBitmap( _gfxFloor, false, false );
 			_bmdLevel = FlxG.addBitmap( _gfxLevel, false, false );
 		}
 		
@@ -92,8 +88,22 @@ package
 		
 		override public function update():void 
 		{
+			_harvestHint.hide();
+			
 			FlxG.collide( _player, _terrain );
+			FlxG.overlap( _player, _seaweeds, playerTouchingResourceNode )
+			
 			super.update();
+		}
+		
+		private function playerTouchingResourceNode( Obj1:FlxObject, Obj2:FlxObject ):void
+		{
+			var resourceNode:ResourceNode = Obj2 as ResourceNode;
+			
+			_harvestHint.x = _player.x + _player.width * 0.5 - _harvestHint.width * 0.5;
+			_harvestHint.y = _player.y - 20;
+			_harvestHint.show();
+			_player.harvest( resourceNode );
 		}
 		
 	}
