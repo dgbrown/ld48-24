@@ -16,6 +16,10 @@ package
 		private var _gfxBackground:Class;
 		private var _bmdBackground:BitmapData;
 		
+		[Embed(source = "../assets/images/floor.png")]
+		private var _gfxFloor:Class;
+		private var _bmdFloor:BitmapData;
+		
 		override public function create():void 
 		{
 			super.create();
@@ -25,24 +29,18 @@ package
 			
 			initializeGraphics();
 			
-			_ground = new FlxSprite( 0, FlxG.height - 50 );
-			_ground.makeGraphic( 320, 50, 0xFF000000, true );
+			_ground = new FlxSprite( 0, FlxG.height - _bmdFloor.height, _gfxFloor );
 			_ground.immovable = true;
 			add( _ground );
 			
-			_player = new FlxSprite( FlxG.width * 0.15, 20 );
-			_player.makeGraphic( 15, 24, 0xFFFFDF2D, true );
-			_player.acceleration.y = 20;
-			_player.maxVelocity.y = 50;
-			_player.maxVelocity.x = 35;
-			// on ground player drag is 15
-			// else drag is 1
+			_player = new Player( FlxG.width * 0.15, 20 );
 			add( _player );
 		}
 		
 		public function initializeGraphics():void
 		{
 			_bmdBackground = FlxG.addBitmap( _gfxBackground, false, true );
+			_bmdFloor = FlxG.addBitmap( _gfxFloor, false, false );
 		}
 		
 		override public function draw():void 
@@ -54,13 +52,6 @@ package
 		override public function update():void 
 		{
 			FlxG.collide( _player, _ground );
-			
-			// adjust physics variables
-			_player.drag.x = _player.touching ? 60 : 5;
-			
-			_player.velocity.x += !_player.touching ? 0 : FlxG.keys.RIGHT ? 5 : FlxG.keys.LEFT ? -5 : 0;
-			if ( FlxG.keys.justPressed("UP") && _player.touching )
-				_player.velocity.y -= 30;
 			
 			super.update();
 		}
