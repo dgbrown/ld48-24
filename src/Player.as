@@ -10,9 +10,15 @@ package
 	public class Player extends FlxSprite 
 	{
 		
+		public static const JUMP_POWER:Number = 20.0;
+		public static const MAX_JUMP_CHARGE_BONUS:Number = 20.0;
+		
 		private var _jumpKeyMark:int;
 		private var _jumpKeyDelta:Number;
 		private var _maxJumpKeyDelta:Number;
+		
+		private var _nSeaweed:uint;
+		private var _nMinerals:uint;
 		
 		public function Player( X:Number = 0, Y:Number = 0 )
 		{
@@ -22,6 +28,15 @@ package
 			maxVelocity.y = 50;
 			maxVelocity.x = 35;
 			_maxJumpKeyDelta = 1.5;
+			
+			_nMinerals = 0;
+			_nSeaweed = 0;
+		}
+		
+		public function harvest( Node:ResourceNode ):void
+		{
+			if( Node.isHarvestable )
+				_nSeaweed += Node.harvest( 25 );
 		}
 		
 		override public function update():void 
@@ -30,7 +45,7 @@ package
 			if ( FlxG.keys.justPressed( "SPACE" ) )
 				_jumpKeyMark = getTimer();
 			
-			if ( touching & FLOOR && ( FlxG.keys.SPACE || FlxG.keys.justReleased("SPACE") ) )
+			if ( touching&FLOOR && ( FlxG.keys.SPACE || FlxG.keys.justReleased("SPACE") ) )
 			{
 				_jumpKeyDelta = ( getTimer() - _jumpKeyMark ) / 1000.0; // number of seconds jump key was held
 				if ( _jumpKeyDelta > 1.5 || FlxG.keys.justReleased( "SPACE" ) )
@@ -38,17 +53,23 @@ package
 					if ( _jumpKeyDelta > 1.5 )
 						_jumpKeyDelta = 1.5 ;
 						
-					velocity.y -= 30.0 * _jumpKeyDelta;
+					velocity.y -= JUMP_POWER + MAX_JUMP_CHARGE_BONUS * _jumpKeyDelta;
 					
 					_jumpKeyDelta = 0;
 				}
+			}
+			else
+			{
+				_jumpKeyDelta = 0;
+				_jumpKeyMark = getTimer();
 			}
 			
 			// adjust physics
 			drag.x = touching&FLOOR ? 60 : 5;
 			
 			// apply physics based on control input
-			velocity.x += !(touching&FLOOR) ? 0 : FlxG.keys.RIGHT ? 5 : FlxG.keys.LEFT ? -5 : 0;
+			var moveSpeed:Number = (touching&FLOOR) ? 5 : 1;
+			velocity.x += FlxG.keys.RIGHT ? moveSpeed : FlxG.keys.LEFT ? -moveSpeed : 0;
 			if ( FlxG.keys.justPressed("UP") && touching&FLOOR )
 				velocity.y -= 10;
 			
@@ -66,7 +87,7 @@ package
 			
 			for ( var i:uint = 1; i <= nPixels; i++ )
 			{
-				FlxG.camera.buffer.setPixel( x - 2, y + height - i, lineColor );
+				FlxG.camera.buffer.setPixel( x - 2 - FlxG.camera.scroll.x, y + height - i, lineColor );
 			}
 		}
 		
