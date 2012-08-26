@@ -18,8 +18,17 @@ package
 		
 		public function ResourceNode( X:Number=0, Y:Number=0 ) 
 		{
-			super( X, 0, _gfxSeaWeed );
-			y = Y - height * 0.95; // fix offset
+			super( X, 0 );
+			width = 16;
+			height = 79;
+			y = Y - height + 13; // fix offset
+			x = X - 4;
+			
+			loadGraphic( _gfxSeaWeed, true, false, 16, 70 );
+			addAnimation( "full", [0, 2, 1, 2], 1, true );
+			addAnimation( "half", [3, 5, 4, 5], 1, true );
+			addAnimation( "empty", [6], 0, false );
+			play("full", true);
 			
 			quantity = MAX_QUANTITY;
 			
@@ -29,7 +38,7 @@ package
 		/// subtracts input amount from quantity (cannot go below zero), and returns amount subtracted
 		public function harvest( Amount:uint = 1 ):uint
 		{
-			if ( quantity - Amount < 0 )
+			if ( quantity - Amount <= 0 )
 			{
 				Amount += quantity - Amount; // adding a negative value
 				quantity = 0;
@@ -37,6 +46,15 @@ package
 			}
 			else
 				quantity -= Amount;
+			
+			if ( quantity > MAX_QUANTITY * 0.5 )
+				play( "full" );
+			else if ( quantity > 0 )
+				play("half");
+			else
+				play("empty");
+			
+				
 			return Amount;
 		}
 	}

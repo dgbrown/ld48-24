@@ -13,12 +13,15 @@ package
 		public static const JUMP_POWER:Number = 20.0;
 		public static const MAX_JUMP_CHARGE_BONUS:Number = 20.0;
 		
+		public static const MAX_MINERALS:uint = 200;
+		public static const MAX_SEAWEED:uint = 500;
+		
 		private var _jumpKeyMark:int;
 		private var _jumpKeyDelta:Number;
 		private var _maxJumpKeyDelta:Number;
 		
-		private var _nSeaweed:uint;
-		private var _nMinerals:uint;
+		public var nSeaweed:uint;
+		public var nMinerals:uint;
 		
 		public function Player( X:Number = 0, Y:Number = 0 )
 		{
@@ -29,14 +32,16 @@ package
 			maxVelocity.x = 35;
 			_maxJumpKeyDelta = 1.5;
 			
-			_nMinerals = 0;
-			_nSeaweed = 0;
+			health = 3;
+			
+			nMinerals = 0;
+			nSeaweed = 0;
 		}
 		
 		public function harvest( Node:ResourceNode ):void
 		{
 			if( Node.isHarvestable )
-				_nSeaweed += Node.harvest( 25 );
+				nSeaweed += Node.harvest( 25 );
 		}
 		
 		override public function update():void 

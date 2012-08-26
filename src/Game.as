@@ -13,6 +13,13 @@ package
 		private var _player:Player;
 		private var _harvestHint:Hint;
 		
+		private var _txtSeaweed:FlxText;
+		private var _txtMinerals:FlxText;
+		private var _scoreBackground:FlxSprite;
+		private var _heartBar:HeartBar;
+		
+		private var _touchableResourceNode:ResourceNode;
+		
 		[Embed(source="../assets/images/sea_background.png")]
 		private var _gfxBackground:Class;
 		private var _bmdBackground:BitmapData;
@@ -48,6 +55,22 @@ package
 			// ui elements
 			_harvestHint = new Hint( 0, 0, "Press E to harvest!" );
 			add( _harvestHint );
+			_scoreBackground = new FlxSprite( 3, 3 );
+			_scoreBackground.makeGraphic( 100, 30, 0x88000000 );
+			_scoreBackground.scrollFactor.make( 0, 0 );
+			add( _scoreBackground );
+			_txtMinerals = new FlxText( 5, 5, 320, "Minerals 0 / 500" );
+			_txtMinerals.setFormat( null, 8, 0x83F5F5, "left", 0x0EA7A7 );
+			_txtMinerals.scrollFactor.make( 0, 0 );
+			add( _txtMinerals );
+			_txtSeaweed = new FlxText( 5, 18, 320, "Seaweed 0 / 500" );
+			_txtSeaweed.setFormat( null, 8, 0x2CB82F, "left", 0x1D781F );
+			_txtSeaweed.scrollFactor.make( 0, 0 );
+			add( _txtSeaweed );
+			_heartBar = new HeartBar( 3 );
+			_heartBar.x = FlxG.width - _heartBar.width - 2;
+			_heartBar.y = 2;
+			add( _heartBar );
 			
 			// setup camera
 			FlxG.camera.follow( _player );
@@ -87,11 +110,31 @@ package
 		}
 		
 		override public function update():void 
-		{
-			_harvestHint.hide();
+		{	
+			// reset collision related variables
+			_touchableResourceNode = null;
 			
+			// collisions
 			FlxG.collide( _player, _terrain );
 			FlxG.overlap( _player, _seaweeds, playerTouchingResourceNode )
+			
+			// process input
+			if ( _touchableResourceNode != null && _touchableResourceNode.isHarvestable )
+			{
+				_harvestHint.x = _player.x + _player.width * 0.5 - _harvestHint.width * 0.5;
+				_harvestHint.y = _player.y - 20;
+				_harvestHint.show();
+				
+				if ( FlxG.keys.justPressed("E") )
+					_player.harvest( _touchableResourceNode );
+			}
+			else
+				_harvestHint.hide();
+				
+			// update ui state
+			_txtMinerals.text = "Minerals " + _player.nMinerals + " / " + Player.MAX_MINERALS;
+			_txtSeaweed.text = "Seaweed " + _player.nSeaweed + " / " + Player.MAX_SEAWEED;
+			_heartBar.hearts = _player.health;
 			
 			super.update();
 		}
@@ -99,11 +142,8 @@ package
 		private function playerTouchingResourceNode( Obj1:FlxObject, Obj2:FlxObject ):void
 		{
 			var resourceNode:ResourceNode = Obj2 as ResourceNode;
-			
-			_harvestHint.x = _player.x + _player.width * 0.5 - _harvestHint.width * 0.5;
-			_harvestHint.y = _player.y - 20;
-			_harvestHint.show();
-			_player.harvest( resourceNode );
+			if ( _touchableResourceNode == null )
+				_touchableResourceNode = resourceNode;
 		}
 		
 	}
