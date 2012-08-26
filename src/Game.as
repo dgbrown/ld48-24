@@ -110,15 +110,15 @@ package
 			add( _corals );
 			for ( var half:uint = 0; half < 1; ++half )
 			{
-				// place 5 in each half
-				for ( var i:uint = 0; i < 1; ++i )
+				// place 3 in each half
+				for ( var i:uint = 0; i < 3; ++i )
 				{
 					var xpos:uint = _terrain.widthInTiles * 0.5 * half + Math.random() * (_terrain.widthInTiles * 0.5 - 1);
 					var ypos:uint = 0;
 					while ( ypos < _terrain.heightInTiles - 1 && _terrain.getTileByIndex( ypos * _terrain.widthInTiles + xpos ) == 0 )
 						ypos++;
 						
-					var coral:Coral = new Coral( (xpos - 1) * 8, ypos * 8 - 15 );
+					var coral:Coral = new Coral( (xpos - 1) * 8, ypos * 8 - 13 );
 					_corals.add( coral );
 				}
 			}
@@ -130,8 +130,8 @@ package
 			add( _steamvents );
 			for ( var half:int = 0; half <= 1; ++half )
 			{
-				// place 5 in each half
-				for ( var i:int = 0; i < 1; ++i )
+				// place 2 in each half
+				for ( var i:int = 0; i < 2; ++i )
 				{
 					var xpos:uint = _terrain.widthInTiles * 0.5 * half + Math.random() * (_terrain.widthInTiles * 0.5 - 1);
 					var ypos:uint = 0;
