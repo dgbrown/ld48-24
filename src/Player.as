@@ -75,9 +75,7 @@ package
 			// apply physics based on control input
 			var moveSpeed:Number = (touching&FLOOR) ? 5 : 1;
 			velocity.x += FlxG.keys.RIGHT ? moveSpeed : FlxG.keys.LEFT ? -moveSpeed : 0;
-			if ( FlxG.keys.justPressed("UP") && touching&FLOOR )
-				velocity.y -= 10;
-			
+
 			super.update();
 		}
 		
