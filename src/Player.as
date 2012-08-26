@@ -81,6 +81,7 @@ package
 		
 		override public function draw():void 
 		{
+			centerOffsets();
 			super.draw();
 			
 			var jumpPower:Number = ( _jumpKeyDelta / _maxJumpKeyDelta );

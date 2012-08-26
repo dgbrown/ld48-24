@@ -5,21 +5,11 @@ package
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import org.flixel.*;
+	import flash.utils.getTimer;
 	
 	public class Game extends FlxState 
 	{
-		
-		private var _ground:FlxSprite;
-		private var _player:Player;
-		private var _harvestHint:Hint;
-		
-		private var _txtSeaweed:FlxText;
-		private var _txtMinerals:FlxText;
-		private var _scoreBackground:FlxSprite;
-		private var _heartBar:HeartBar;
-		
-		private var _touchableResourceNode:ResourceNode;
-		
+	
 		[Embed(source="../assets/images/sea_background.png")]
 		private var _gfxBackground:Class;
 		private var _bmdBackground:BitmapData;
@@ -30,8 +20,22 @@ package
 		private var _gfxTilesetSeabed:Class;
 		
 		private var _terrain:FlxTilemap;
-		
 		private var _seaweeds:FlxGroup;
+		private var _corals:FlxGroup;
+		private var _steamvents:FlxGroup;
+		
+		private var _ground:FlxSprite;
+		private var _player:Player;
+		private var _harvestHint:Hint;
+		
+		private var _txtSeaweed:FlxText;
+		private var _txtMinerals:FlxText;
+		private var _scoreBackground:FlxSprite;
+		private var _heartBar:HeartBar;
+		
+		private var _playerLastHurtMark:Number;
+		
+		private var _touchableResourceNode:ResourceNode;
 		
 		override public function create():void 
 		{
@@ -39,6 +43,7 @@ package
 			
 			FlxG.mouse.hide();
 			FlxG.bgColor = FlxG.BLUE;
+			_playerLastHurtMark = 0;
 			
 			initializeGraphics();
 			
@@ -48,6 +53,8 @@ package
 			add( _terrain );
 			
 			generateSeaweeds();
+			generateCorals();
+			generateSteamvents();
 			
 			_player = new Player( FlxG.width * 0.15, 20 );
 			add( _player );
@@ -91,8 +98,48 @@ package
 					while ( seaweedYPos < _terrain.heightInTiles - 1 && _terrain.getTileByIndex( seaweedYPos * _terrain.widthInTiles + seaweedXPos ) == 0 )
 						seaweedYPos++;
 						
-					var seaweed:ResourceNode = new ResourceNode( (seaweedXPos - 1) * 8 + 4, seaweedYPos * 8);
+					var seaweed:ResourceNode = new ResourceNode( (seaweedXPos - 1) * 8 + 6, seaweedYPos * 8);
 					_seaweeds.add( seaweed );
+				}
+			}
+		}
+		
+		private function generateCorals():void
+		{
+			_corals = new FlxGroup();
+			add( _corals );
+			for ( var half:uint = 0; half < 1; ++half )
+			{
+				// place 5 in each half
+				for ( var i:uint = 0; i < 1; ++i )
+				{
+					var xpos:uint = _terrain.widthInTiles * 0.5 * half + Math.random() * (_terrain.widthInTiles * 0.5 - 1);
+					var ypos:uint = 0;
+					while ( ypos < _terrain.heightInTiles - 1 && _terrain.getTileByIndex( ypos * _terrain.widthInTiles + xpos ) == 0 )
+						ypos++;
+						
+					var coral:Coral = new Coral( (xpos - 1) * 8, ypos * 8 - 15 );
+					_corals.add( coral );
+				}
+			}
+		}
+		
+		private function generateSteamvents():void
+		{
+			_steamvents = new FlxGroup();
+			add( _steamvents );
+			for ( var half:int = 0; half <= 1; ++half )
+			{
+				// place 5 in each half
+				for ( var i:int = 0; i < 1; ++i )
+				{
+					var xpos:uint = _terrain.widthInTiles * 0.5 * half + Math.random() * (_terrain.widthInTiles * 0.5 - 1);
+					var ypos:uint = 0;
+					while ( ypos < _terrain.heightInTiles - 1 && _terrain.getTileByIndex( ypos * _terrain.widthInTiles + xpos ) == 0 )
+						ypos++;
+						
+					var steamvent:Steamvent = new Steamvent( (xpos - 1) * 8, ypos * 8 - 95 );
+					_steamvents.add( steamvent );
 				}
 			}
 		}
@@ -117,6 +164,8 @@ package
 			// collisions
 			FlxG.collide( _player, _terrain );
 			FlxG.overlap( _player, _seaweeds, playerTouchingResourceNode )
+			FlxG.overlap( _player, _corals, playerTouchingDangerousProp );
+			FlxG.overlap( _player, _steamvents, playerTouchingDangerousProp );
 			
 			// process input
 			if ( _touchableResourceNode != null && _touchableResourceNode.isHarvestable )
@@ -137,6 +186,37 @@ package
 			_heartBar.hearts = _player.health;
 			
 			super.update();
+		}
+		
+		private function playerTouchingDangerousProp( Obj1:FlxObject, Obj2:FlxObject ):void 
+		{	
+			var dangerousProp:DangerousProp = Obj2 as DangerousProp;
+			if ( dangerousProp != null && dangerousProp.isDangerous )
+			{
+				var playerLastHurtDelta:Number = (getTimer() - _playerLastHurtMark) / 1000.0;
+				if ( playerLastHurtDelta >= 2.0 )
+				{
+					_playerLastHurtMark = getTimer();
+					
+					_player.hurt( 1 );
+					_player.flicker( 2 );
+					
+					var propOrigin:FlxPoint = new FlxPoint();
+					if (	dangerousProp is Steamvent ) // push out right or left
+					{
+						propOrigin.x = dangerousProp.x;
+						propOrigin.y = _player.y;
+					}
+					else
+					{
+						propOrigin.x = dangerousProp.x;
+						propOrigin.y = dangerousProp.y;
+					}
+					var ang:Number = Math.atan2( propOrigin.y - _player.y, propOrigin.x - _player.x )
+					_player.velocity.x = Math.cos( ang ) * -40;
+					_player.velocity.y = Math.sin( ang ) * -40;
+				}
+			}
 		}
 		
 		private function playerTouchingResourceNode( Obj1:FlxObject, Obj2:FlxObject ):void

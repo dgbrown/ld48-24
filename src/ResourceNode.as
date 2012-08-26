@@ -1,6 +1,8 @@
 package  
 {
+	import flash.utils.Timer;
 	import org.flixel.FlxSprite;
+	import org.flixel.FlxTimer;
 	
 	/**
 	 * ...
@@ -28,11 +30,19 @@ package
 			addAnimation( "full", [0, 2, 1, 2], 1, true );
 			addAnimation( "half", [3, 5, 4, 5], 1, true );
 			addAnimation( "empty", [6], 0, false );
-			play("full", true);
+			play("full");
+			var randomizeAnimationTimer:FlxTimer = new FlxTimer();
+			randomizeAnimationTimer.start( uint(Math.random() * 3), 1, randomizeAnimationTimerComplete );
 			
 			quantity = MAX_QUANTITY;
 			
 			isHarvestable = true;
+		}
+		
+		private function randomizeAnimationTimerComplete( timer:FlxTimer ):void
+		{
+			if ( _curAnim.name == "full" )
+				play("full", true);
 		}
 		
 		/// subtracts input amount from quantity (cannot go below zero), and returns amount subtracted
