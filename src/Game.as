@@ -18,6 +18,8 @@ package
 		private var _bmdLevel:BitmapData;
 		[Embed(source = "../assets/images/autotiles.png")]
 		private var _gfxTilesetSeabed:Class;
+		[Embed(source="../assets/images/bubble.png")]
+		private var _gfxBubble:Class;
 		
 		private var _terrain:FlxTilemap;
 		private var _seaweeds:FlxGroup;
@@ -27,6 +29,7 @@ package
 		private var _ground:FlxSprite;
 		private var _player:Player;
 		private var _harvestHint:Hint;
+		private var _playerBubbles:FlxEmitter;
 		
 		private var _txtSeaweed:FlxText;
 		private var _txtMinerals:FlxText;
@@ -34,8 +37,16 @@ package
 		private var _heartBar:HeartBar;
 		
 		private var _playerLastHurtMark:Number;
+		private var _nextBubbleMark:Number;
 		
 		private var _touchableResourceNode:ResourceNode;
+		
+		[Embed(source="../assets/sounds/got_hurt.mp3")]
+		private var _mp3Hurt:Class;
+		private var _sndHurt:FlxSound;
+		[Embed(source="../assets/sounds/collect.mp3")]
+		private var _mp3Collect:Class;
+		private var _sndCollect:FlxSound;
 		
 		override public function create():void 
 		{
@@ -44,8 +55,10 @@ package
 			FlxG.mouse.hide();
 			FlxG.bgColor = FlxG.BLUE;
 			_playerLastHurtMark = 0;
+			_nextBubbleMark = 0;
 			
 			initializeGraphics();
+			initializeSounds();
 			
 			_terrain = new FlxTilemap();
 			_terrain.loadMap( FlxTilemap.bitmapToCSV( _bmdLevel ), _gfxTilesetSeabed, 8, 8, FlxTilemap.AUTO );
@@ -58,6 +71,14 @@ package
 			
 			_player = new Player( FlxG.width * 0.15, 20 );
 			add( _player );
+			
+			_playerBubbles = new FlxEmitter();
+			_playerBubbles.makeParticles( _gfxBubble, 30, 0, false, 0 );
+			_playerBubbles.setYSpeed( -5, -10 );
+			_playerBubbles.setRotation();
+			_playerBubbles.setXSpeed( -2, 2 );
+			_playerBubbles.lifespan = 3;
+			add( _playerBubbles );
 			
 			// ui elements
 			_harvestHint = new Hint( 0, 0, "Press E to harvest!" );
@@ -82,6 +103,14 @@ package
 			// setup camera
 			FlxG.camera.follow( _player );
 			_terrain.follow( FlxG.camera );
+		}
+		
+		private function initializeSounds():void
+		{
+			_sndHurt = new FlxSound();
+			_sndHurt.loadEmbedded( _mp3Hurt );
+			_sndCollect = new FlxSound();
+			_sndCollect.loadEmbedded( _mp3Collect );
 		}
 		
 		private function generateSeaweeds():void
@@ -175,10 +204,21 @@ package
 				_harvestHint.show();
 				
 				if ( FlxG.keys.justPressed("E") )
+				{
 					_player.harvest( _touchableResourceNode );
+					_sndCollect.play( true );
+				}
 			}
 			else
 				_harvestHint.hide();
+				
+			_playerBubbles.x = _player.x;
+			_playerBubbles.y = _player.y;
+			if ( getTimer() >= _nextBubbleMark )
+			{
+				_playerBubbles.emitParticle();
+				_nextBubbleMark = getTimer() + Math.random() * 1900 + 100;
+			}
 				
 			// update ui state
 			_txtMinerals.text = "Minerals " + _player.nMinerals + " / " + Player.MAX_MINERALS;
@@ -215,6 +255,8 @@ package
 					var ang:Number = Math.atan2( propOrigin.y - _player.y, propOrigin.x - _player.x )
 					_player.velocity.x = Math.cos( ang ) * -40;
 					_player.velocity.y = Math.sin( ang ) * -40;
+					
+					_sndHurt.play(true);
 				}
 			}
 		}
@@ -222,7 +264,7 @@ package
 		private function playerTouchingResourceNode( Obj1:FlxObject, Obj2:FlxObject ):void
 		{
 			var resourceNode:ResourceNode = Obj2 as ResourceNode;
-			if ( _touchableResourceNode == null )
+			if ( _touchableResourceNode == null && resourceNode != null && resourceNode.isHarvestable )
 				_touchableResourceNode = resourceNode;
 		}
 		
