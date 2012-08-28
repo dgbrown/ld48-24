@@ -17,6 +17,7 @@
   <classpaths>
     <class path="src" />
     <class path="org" />
+    <class path="..\..\apis\flixel" />
   </classpaths>
   <!-- Build options -->
   <build>
